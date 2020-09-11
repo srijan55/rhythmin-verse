@@ -1,0 +1,126 @@
+<!DOCTYPE html> 
+<html> 
+
+<head> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript" src="d3.v2.min.js"></script>
+  	<script type="text/javascript" src="hpv.v5.7.js"></script>
+	<title> 
+		Geet Gatiroop 
+	</title> 
+	
+	<!-- Style to fill remaining 
+		horizontal space -->
+	<style> 
+		#main { 
+			border: 1px solid black; 
+		} 
+		#left { 
+			display: inline-block;
+			width: 300px; 
+			border: 1px solid blue;
+			vertical-align: top;
+		} 
+		#right { 
+			display: inline-block;
+			/*height: 100%; */
+			border: 1px solid green;
+			vertical-align: top;
+		} 
+	</style> 
+	<style type="text/css">
+	  .poem-box {
+	    background: #f5f5f5;
+	    border: 1px solid #ddd;
+	    padding: 5px;
+	    white-space: pre-line;
+	    vertical-align: top;
+	  }
+	  .poem-box[placeholder]:empty:before {
+	      content: attr(placeholder);
+	      color: #757474f5; 
+	  }
+	</style>
+	<script type="text/javascript">
+	var visDivBeside = true;
+	function calculateVisBesideWidth()
+    {
+    	var w = window.innerWidth;
+    	return (w-300-50);
+    }
+    function callVisualize()
+    {
+		var poem = document.getElementById("pom").innerText;
+		var visDiv = document.getElementById("right");
+		var availableW = visDiv.clientWidth;
+		// alert(availableW);
+		visualize(poem, availableW);
+		if ((oVisual.ratio < 0.6) && (visDivBeside)) // move vis down below poem box
+      	{
+      		// alert("moving div down");
+      		visDiv.style.width="100%";
+      		availableW = visDiv.clientWidth;
+      		redraw(availableW);
+      		visDivBeside = false;
+    	}
+    	else if ((oVisual.ratio > 1 ) && (!visDivBeside)) // possibly move visDiv up if space beside poem box enough for poem
+		{
+			// alert("possibly moving div up");
+			var newW = calculateVisBesideWidth();
+			var newRatio = newW / oVisual.width;
+			// alert(newRatio);
+			if (newRatio > 1)
+			{
+				visDiv.style.width = newW + "px";
+				availableW = visDiv.clientWidth;
+	      		redraw(availableW);
+	      		visDivBeside = true;
+			}
+		}
+		var chkFit = document.getElementById("chkFit");
+		if (oVisual.userMode == '')
+		{
+			if (oVisual.mode == 'flexible')
+				chkFit.checked = true;
+
+		}
+    }
+    
+    function setVisDiv() {
+    	var visDiv = document.getElementById("right");
+    	var w = window.innerWidth;
+    	if (w <= 500)
+    	{
+    		visDiv.style.width = "100%";
+    		visDivBeside = false;
+    	}
+    	if (w > 500)
+ 			visDiv.style.width = calculateVisBesideWidth()+"px";
+    }
+  </script>
+</head>	 
+
+<body onload="setVisDiv();">		 
+	<div id = "main"> 
+		<div id="left"> 
+			अपनी हिन्दी कविता यहां कापी-पेस्ट करिए<br/>
+			<div contenteditable="true" placeholder="अपनी कविता यहां डालिए..." id='pom' class="poem-box"></div>
+		    <br>
+		    <input type="button" value="Visualize!" onclick="callVisualize();">
+		</div> 
+		
+		<div id="right"> 
+			<div id="chart"></div>
+			<div style="display:none" id="divControls">
+		      <!-- <input type="checkbox" id="chkShowEditables" checked="true" onclick="switchMode();" /> Show Editables -->
+		      <input type="checkbox" id="chkGhazal" onclick="fnGhazal();" /> Ghazal <input type="checkbox" id="chkFreeVerse" onclick="fnFreeVerseSupport();" /> Free Verse<span id="spanFreeVerse" style="display:none"> | Base Count: <input type="number" name="baseCount" id="baseCount" value="1" min="1" size="20" max="100" step="1" onchange="fnBaseCountChange();"></span>
+		      <br/>
+		      <input type="checkbox" id="chkShowText" checked="true" onclick="fnShowText();" /> Show Text 
+		      <input type="checkbox" id="chkLineSpacing" onclick="fnLineSpacing();" /> Remove Line Spacing
+		      <input type="checkbox" id="chkFit" onclick="fnFit(this);" /> Fit Vis in Screen
+		    </div>
+		</div> 
+	</div> 
+</body> 
+
+</html>					 

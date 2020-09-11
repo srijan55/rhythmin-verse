@@ -1,7 +1,12 @@
-﻿  var charW = 24;
-  var charH = 24;
+﻿/* added check at line#396 to handle needless chars like
+. ' * that broke code earlier
+now it just continues onto next iteration of the loop
+*/
+
+  var charW = 20; // decrease charW to 20 from 24 earlier
+  var charH = 20; // decrease charW to 20 from 24 earlier
   var paddingLeft = 10;
-  var lineSpacing = 7;
+  var lineSpacing = 5;
   var mode = "analyze";
   var showText = true;
   var prevText = "";
@@ -105,7 +110,7 @@
     // if clause implies a truncation did occur in the above substr code, and hence array has to be truncated 
     if (radeef !== realRadeef) 
     {
-      console.log('radeef truncated');
+      // console.log('radeef truncated');
       radeefTruncated = 1;
       for (i = radeefArray.length - 1; i >= 0 ; i--) 
       {
@@ -207,8 +212,8 @@
       kaafiyaa1 = originalVowel(chars[0][i][1]);
 
       kaafiyaa2 = originalVowel(chars[1][j][1]);
-      console.log(kaafiyaa1);
-      console.log(kaafiyaa2);
+      // console.log(kaafiyaa1);
+      // console.log(kaafiyaa2);
       if (kaafiyaa1 == kaafiyaa2)
       {
         kaafiyaa = kaafiyaa1 + kaafiyaa;
@@ -223,7 +228,7 @@
     }
     if (kaafiyaaArray[0]==" ")
       kaafiyaaArray.splice(0,1);
-    console.log(kaafiyaaArray);
+    // console.log(kaafiyaaArray);
 
     var kaafiyaaArrayLen = kaafiyaaArray.length;
     var radeefArrayLen = radeefArray.length;
@@ -383,6 +388,8 @@
             // now for the newly separated characters, get the number codes
             // of the consonants and vowels
             len = chars[i].length-1;
+            if (typeof(chars[i][len]) == 'undefined') // so the existence of needless chars like .,*,' may not break the code
+              continue;
             chars[i][len][2] = getConsData(chars[i][len][0]);
             chars[i][len][3] = getVowData(chars[i][len][1]);
             chars[i][len][4] = 0; // len
@@ -469,7 +476,7 @@
     {
       chars.length = lines.length;
     }
-    //console.log(chars);
+    console.log(chars);
     prevText = pom;
   }
 
@@ -561,7 +568,10 @@
   function conColor(c) {
     var color = "";
     var fillOp = "0.7";
-    switch(c)  // which consonant
+    // set all consonants to a light blue
+    color = "rgb(0,220,255)"; // blue 
+    fillOp = "0.2";
+    /*switch(c)  // which consonant
     { 
       case 0: // vowel
         color = "grey";
@@ -592,7 +602,7 @@
         break;
       default:
         color = "black";
-    }
+    }*/
     return [color,fillOp];
   }
 
@@ -616,7 +626,7 @@
     var color = "white";
     var strokeOp = "0.3";
     var strokeW = 1;
-    var fillOp = "0.7";
+    var fillOp = "0.2";
 
     // call conColor to determine color and opacity as per consonant
     if (colorBy == 'consonant')
@@ -630,12 +640,12 @@
       if (c[6] == 'r') // is a radeef char
       {
         color = "rgb(0,220,255)"; // blue
-        fillOp = "1.0";
+        fillOp = "0.5";
       }
       if (c[6] == 'k') // is a kaafiyaa char
       {
         color = "rgb(0,255,0)"; // green
-        fillOp = "1.0";
+        fillOp = "0.5";
       }
     }
     
@@ -647,8 +657,8 @@
     {
       //console.log(c);
       color = "black";
-      strokeOp = "1";
-      fillOp = "0.7";    
+      strokeOp = "0.3";
+      fillOp = "0.6";    
     }
 
     return "fill: "+color+"; fill-opacity: " + fillOp + ";stroke:black; stroke-width: "+strokeW+"; stroke-opacity: "+strokeOp;
@@ -658,12 +668,24 @@
   function vowPath(d,i)
   {
     var p = "";
-    var x = ((d[5]-d[4])*charW);  // what is x?
+    var x = ((d[5]-d[4])*charW);  // where the drawing of this path has to start horizontally
     var w = charW*d[4];
     var h = charH;
-    switch(d[3])  // which vowel
+    if ((d[3] == -1) && (d[4] == 0)) // half letter of 0 width
     {
-      case -1: // unknown
+      w = 4;  // small black box on top
+      h = 4;  // small black box on top
+      x = x-2;  
+      p = "M"+x+",0 L"+x+",-"+h + " L"+(x+w)+",-"+h+" L"+(x+w)+",0 z";
+    }
+    else
+    {
+      // set all vowels to a to square or double width rectangle
+      p = "M"+x+",0 L"+x+","+h + " L"+(x+w)+","+h+" L"+(x+w)+",0 z";
+    }
+    /*switch(d[3])  // which vowel
+    {
+      case -1: // unknown or half letter
         if (d[4] == 0)
         {
           //p = "M"+x+",0m0,3a3,3 0 1,1 0,-6a3,3 0 1,1 0,6z";
@@ -711,7 +733,7 @@
       default: // unknown
         p = "M"+x+",0 L"+x+","+h + " L"+(x+w)+","+h+" L"+(x+w)+",0 z";
         break;
-    }
+    }*/
     return p;
   }
 
@@ -970,8 +992,8 @@
      chart.select("svg").remove();
      var svg = chart.append("svg")
                   .attr("width", function() {return (fFreeVerse?charW*maxLen+120:charW*maxLen+100);})
-                  .attr("height", ((maxLineLen*(charW+7))+(charW+7))+charW)
-                  .attr("style","border: solid 1px #ddd;");
+                  .attr("height", ((maxLineLen*(charW+lineSpacing))+(charW))+charW)
+                  .attr("style","border-bottom: solid 1px #ddd;");
 
     // create the "g"s (svg groups) for each line
     if (fLineSpacing)
@@ -995,6 +1017,19 @@
           .attr("id", function(d,i) { return "gLine"+i});
     }
 
+    if (showText)
+    {
+        g.selectAll("text")               // char text
+          .data(function(d) {return d;} )
+          .enter().append("svg:text")
+            .attr("y", charH-2)
+            .attr("x", function(d,i) {return charTxtPos(d);})
+            .attr("class", "graphText3")
+            //.attr("dominant-baseline", "central")
+            .attr("text-anchor", "middle")
+            .text(function(d) {return charTxt(d);});
+    }
+
     g.selectAll("path")
       .data(function(d) {return d;} )
       .enter().append("path")
@@ -1009,18 +1044,7 @@
         .attr("title", function(d,i) {return d[0]+d[1];})
         .on("click",adjustCharLen);
 
-    if (showText)
-    {
-        g.selectAll("text")               // char text
-          .data(function(d) {return d;} )
-          .enter().append("svg:text")
-            .attr("y", charH-2)
-            .attr("x", function(d,i) {return charTxtPos(d);})
-            .attr("class", "graphText3")
-            //.attr("dominant-baseline", "central")
-            .attr("text-anchor", "middle")
-            .text(function(d) {return charTxt(d);});
-    }
+    
     
     // line total maatraa
     if (fFreeVerse) // line maatraa count numbers are clickable
@@ -1057,7 +1081,7 @@
     {
       g.append("svg:text")            // line total maatraa
       .attr("y", charH)
-      .attr("x", function(d) {return charW*maxLen+charW;})
+      .attr("x", function(d) {return charW*maxLen+(charW/2);}) // decreased distance of maatraa count. was charW. is charW/2 now
       //.attr("dominant-baseline", "central")
       .attr("class", "graphText3")
       .text(function(d) { return (d.length > 0) ? d[d.length-1][5] : "";});
@@ -1120,7 +1144,6 @@
     }
   }
 
-  function redrawCompositeNumbers()
   {
     //console.log("redraw composite numbers");
     d3.selectAll(".compositeCountT").remove();

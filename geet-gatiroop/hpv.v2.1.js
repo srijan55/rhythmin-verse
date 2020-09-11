@@ -13,246 +13,17 @@
   var maxLen = 0;
   var maxLineLen = 0;
   var compositeLinesMarkingA = [];
-  var fGhazal = false;
-  var radeef = '';
-  var radeefArray = [];
-  var radeefTruncated = 0;
 
   // this is where the beauty manifestation starts!
   function visualize()
   {
     splitNprocessPoem();
-
+    //console.log("chars");
+    //console.log(chars);
     if (fFreeVerse)
       initializeCompositeLines();
-
-    if (fGhazal)
-    {
-      calculateRadeef();
-      calculateKaafiyaa();
-    }
-
     draw();
     document.getElementById("divControls").style.display = "block";
-  }
-
-  // sometimes the consonant char may be a pure vowel
-  function joinCharConsonantVowel(c,v) 
-  {
-    if (c==v)
-      return v; // c is also a vowel - like आ आ
-    if (v == 'अ')
-      return c; // could be a case of न अ 
-    return c+v;
-  }
-
-  function calculateRadeef() 
-  {
-    // chars array structure
-    // 1st d: line - array
-    // 2nd d: the alphabet units - array
-    // 3rd d: 6 element info about each alphabet
-    // 0: the alphabet
-    // 1: the maatraa
-    // 2: vowel or consonant - if vowel: 0, if consonant, which consonant line
-    // 3: whicheth vowel
-    // 5: cumulative length
-
-    radeef = '';
-    radeefArray = [];
-    radeefTruncated = 0;
-
-    var radeef1, radeef2;
-    var linelen1,linelen2;
-    var linelen1 = chars[0].length;
-    var linelen2 = chars[1].length;
-
-    var foundRadeefEnd = false;
-    var i = linelen1 - 1; // first line index
-    var j = linelen2 - 1; // second line index
-
-    while ((!foundRadeefEnd) && (i >= 0) && (j >= 0))
-    {
-      radeef1 = joinCharConsonantVowel(chars[0][i][0],chars[0][i][1]);
-
-      radeef2 = joinCharConsonantVowel(chars[1][j][0],chars[1][j][1]);
-
-      if (radeef1 == radeef2)
-      {
-        radeef = radeef1 + radeef;
-        radeefArray[radeefArray.length] = [];
-        radeefArray[radeefArray.length - 1][0] = chars[0][i][0];
-        radeefArray[radeefArray.length - 1][1] = chars[0][i][1];
-        i--;
-        j--;
-      }
-      else
-      {
-        foundRadeefEnd = true;
-      }
-    }
-
-    // cut out the last part of calculated radeef if it has a space and an incomplete word.
-    // eg. for 
-    // कोई उम्मीद बर नहीं आती
-    // कोई सूरत नज़र नहीं आती
-    // sys will calculate radeef as as "र नहीं आती" because that is common between top and bottom line
-    // but radeef is "नहीं आती"
-    var realRadeef = radeef.substr(radeef.indexOf(' ')+1);
-    // console.log(radeef);
-
-    // truncate radeefArray too
-    // if clause implies a truncation did occur in the above substr code, and hence array has to be truncated 
-    if (radeef !== realRadeef) 
-    {
-      console.log('radeef truncated');
-      radeefTruncated = 1;
-      for (i = radeefArray.length - 1; i >= 0 ; i--) 
-      {
-        if (radeefArray[i][0] == " ") break;
-      }
-      radeefArray.length = i;
-      radeef = realRadeef;
-    }
-    
-    // the characters in this radeefArray is in reverse order
-    // console.log('radeef array');
-    // console.log(radeefArray);
-    var radeefArrayLen = radeefArray.length;
-    // now mark radeef chars in all relevant lines
-    for (var i = 0; i < chars.length; i++) {
-      // console.log(i);
-      var supposedlyRelevantLine = false;
-      // first 2 lines
-      if (i<=1) supposedlyRelevantLine = true;
-      // intermediate line followed by blank line
-      if ((i>1) && (i<(chars.length-1)) && (chars[i+1].length==0)) supposedlyRelevantLine = true;
-      // last line
-      if (i==(chars.length-1)) supposedlyRelevantLine = true;
-      var linelen = chars[i].length;
-      if ((supposedlyRelevantLine) && (linelen > radeefArrayLen))
-      {
-        
-        for (var j = 0; j < radeefArrayLen; j++) {
-          if ((radeefArray[j][0] == chars[i][linelen-1-j][0]) && (radeefArray[j][1] == chars[i][linelen-1-j][1]))
-            chars[i][linelen-1-j][6] = 'r';
-          else
-            break;
-        }
-        // console.log('line '+i);
-        // console.log(chars[i]);
-        // break;
-      }
-    }
-  }
-
-  function originalVowel(c)
-  {
-    switch(c)
-    {
-      case " ": case ",":
-        return " ";
-      case "अ": 
-        return "अ";
-        break;
-      case "आ": case "ा":
-        return "आ";
-        break;
-      case "इ": case "ि":
-        return "इ";
-        break;
-      case "ई": case "ी":
-        return "ई";
-        break;
-      case "उ": case "ु":
-       return "उ";
-        break;
-      case "ऊ": case "ू":
-        return "ऊ";
-        break;
-      case "ए": case "े":
-        return "ए";
-        break;
-      case "ऐ": case "ै":
-        return "ऐ";
-        break;
-      case "ओ": case "ो":
-        return "ओ";
-        break;
-      case "औ": case "ौ":
-        return "औ";
-        break;
-      case "ृ":
-        return "ृ";
-        break;
-      default:
-        return -1;
-    }
-    return -1;
-  }
-
-  function calculateKaafiyaa()
-  {
-    var radeefArrayLen = radeefArray.length;
-    var foundKaafiyaaEnd = false;
-    var kaafiyaa,kaafiyaa1, kaafiyaa2;
-    var kaafiyaaArray = [];
-    var linelen1 = chars[0].length;
-    var linelen2 = chars[1].length;
-    var i = linelen1 - 1 - radeefArrayLen; // first line index
-    var j = linelen2 - 1 - radeefArrayLen; // second line index
-
-    while ((!foundKaafiyaaEnd) && (i >= 0) && (j >= 0))
-    {
-      kaafiyaa1 = originalVowel(chars[0][i][1]);
-
-      kaafiyaa2 = originalVowel(chars[1][j][1]);
-      console.log(kaafiyaa1);
-      console.log(kaafiyaa2);
-      if (kaafiyaa1 == kaafiyaa2)
-      {
-        kaafiyaa = kaafiyaa1 + kaafiyaa;
-        kaafiyaaArray[kaafiyaaArray.length] = kaafiyaa1;
-        i--;
-        j--;
-      }
-      else
-      {
-        foundKaafiyaaEnd = true;
-      }
-    }
-    if (kaafiyaaArray[0]==" ")
-      kaafiyaaArray.splice(0,1);
-    console.log(kaafiyaaArray);
-
-    var kaafiyaaArrayLen = kaafiyaaArray.length;
-    var radeefArrayLen = radeefArray.length;
-
-    // now mark kaafiyaa chars in all relevant lines
-    for (var i = 0; i < chars.length; i++) {
-      // console.log(i);
-      var supposedlyRelevantLine = false;
-      // first 2 lines
-      if (i<=1) supposedlyRelevantLine = true;
-      // intermediate line followed by blank line
-      if ((i>1) && (i<(chars.length-1)) && (chars[i+1].length==0)) supposedlyRelevantLine = true;
-      // last line
-      if (i==(chars.length-1)) supposedlyRelevantLine = true;
-      var linelen = chars[i].length;
-      if ((supposedlyRelevantLine) && (linelen > (radeefArrayLen+kaafiyaaArrayLen+radeefTruncated)))
-      {
-        
-        for (var j = 0; j < kaafiyaaArrayLen; j++) {
-          if (kaafiyaaArray[j] == originalVowel(chars[i][linelen-1-radeefArrayLen-radeefTruncated-j][1]))
-            chars[i][linelen-1-radeefArrayLen-radeefTruncated-j][6] = 'k';
-          else
-            break;
-        }
-        // console.log('line '+i);
-        // console.log(chars[i]);
-        // break;
-      }
-    }
   }
 
   function initializeCompositeLines()
@@ -530,7 +301,7 @@
       case "ए": case "ऐ": case "ओ": case "औ":
         return 0;
         break;
-      case "क": case "ख": case "ख़": case "ग": case "घ": case "ग़": case "ङ":
+      case "क": case "ख": case "ग": case "घ": case "ग़": case "ङ":
         return 1;
         break;
       case "च": case "छ": case "ज": case "झ": case "ञ": case "ज़":
@@ -557,11 +328,25 @@
     return -1;
   }
 
-  // color determined by consonant
-  function conColor(c) {
+  // color of shapes determined by vowel
+  function conColor(c)
+  {
+
+    // "c" is the character array
+    // 0: the alphabet
+    // 1: the maatraa
+    // 2: vowel or consonant - if vowel: 0, if consonant, which consonant line
+    // 3: whicheth vowel
+    // 4: individual length
+    // 5: cumulative length
+    if (c[3] === -10) // do not display space, comma
+      return "display: none";
+
     var color = "";
+    var strokeOp = "";
+    var strokeW = 0;
     var fillOp = "0.7";
-    switch(c)  // which consonant
+    switch(c[2])  // which consonant
     { 
       case 0: // vowel
         color = "grey";
@@ -578,7 +363,7 @@
         break;
       case 4: // ta tha da dha ...
         color = "rgb(0,255,0)"; // green
-        fillOp = "1.0";
+        fillOp = "1.0"
         break;
       case 5: // pa pha ba bha
         color = "rgb(0,220,255)"; // blue
@@ -593,65 +378,36 @@
       default:
         color = "black";
     }
-    return [color,fillOp];
-  }
 
-  // style of char blocks - including color
-  // c - the character to be styled
-  // showConColor - boolean - whether the color is to be displayed or not
-  function styleCharBlock(c,colorBy)
-  {
-
-    // "c" is the character array
-    // 0: the alphabet
-    // 1: the maatraa
-    // 2: vowel or consonant - if vowel: 0, if consonant, which consonant line
-    // 3: whicheth vowel
-    // 4: individual length
-    // 5: cumulative length
-    // 6: this index may or may not exist - indicating radeef(r) or kaafiyaa (k)
-    if (c[3] === -10) // do not display space, comma
-      return "display: none";
-
-    var color = "white";
-    var strokeOp = "0.3";
-    var strokeW = 1;
-    var fillOp = "0.7";
-
-    // call conColor to determine color and opacity as per consonant
-    if (colorBy == 'consonant')
+    // (even vowel or vowel above 6) and mode = edit
+    // make stroke bold
+    // this if clause is defunct right now as 
+    // edit highlighting is not done
+    // only else clause works
+    if (((c[3]%2 == 0) || ((c[3]>6)&&(c[3]<11))) && (mode == "edit"))
     {
-      var conColorResult = conColor(c[2]);
-      color = conColorResult[0];
-      fillOp = conColorResult[1];
+      strokeOp = "1.0";
+      strokeW = 2;
     }
-    if ((colorBy == 'ghazal') && (c.length>6))
+    else
     {
-      if (c[6] == 'r') // is a radeef char
-      {
-        color = "rgb(0,220,255)"; // blue
-        fillOp = "1.0";
-      }
-      if (c[6] == 'k') // is a kaafiyaa char
-      {
-        color = "rgb(0,255,0)"; // green
-        fillOp = "1.0";
-      }
+      strokeOp = "0.3";
+      strokeW = 1;
     }
-    
+
     // unknown vowel, individual length unknown/0
     // what are some examples when this occurs?
     // 1 eg. ऋ as in rishi
     // any other examples? 
     if ((c[3] == -1) && (c[4] == 0))
     {
+      //console.log("in special conColor if clause");
       //console.log(c);
       color = "black";
       strokeOp = "1";
       fillOp = "0.7";    
     }
-
-    return "fill: "+color+"; fill-opacity: " + fillOp + ";stroke:black; stroke-width: "+strokeW+"; stroke-opacity: "+strokeOp;
+      return "fill: "+color+"; fill-opacity: " + fillOp + ";stroke:black; stroke-width: "+strokeW+"; stroke-opacity: "+strokeOp;
   }
   
   // shapes' shape determined by vowel
@@ -999,12 +755,7 @@
       .data(function(d) {return d;} )
       .enter().append("path")
         .attr("id", function(d,i) {return "char"+i})
-        .attr("style", function(d,i) {
-          if (fGhazal)
-            return styleCharBlock(d,'ghazal');
-          else
-            return styleCharBlock(d,'consonant');
-        })
+        .attr("style", function(d,i) {return conColor(d);})
         .attr("d", function(d,i) {return vowPath(d,i);})
         .attr("title", function(d,i) {return d[0]+d[1];})
         .on("click",adjustCharLen);
@@ -1149,32 +900,13 @@
     fFreeVerse = !fFreeVerse;
     if (fFreeVerse)
     {
-      document.getElementById("chkGhazal").disabled = true;
       document.getElementById("spanFreeVerse").style.display = "inline";
       initializeCompositeLines();
     }
     else
     {
-      document.getElementById("chkGhazal").disabled = false;
       document.getElementById("spanFreeVerse").style.display = "none";
     }
-    draw();
-  }
-
-  function fnGhazal()
-  {
-    fGhazal = !fGhazal;
-    if (fGhazal)
-    {
-      document.getElementById("chkFreeVerse").disabled = true;
-      calculateRadeef();
-      calculateKaafiyaa();
-    }
-    else
-    {
-      document.getElementById("chkFreeVerse").disabled = false;
-    }
-    
     draw();
   }
 
@@ -1201,5 +933,116 @@
   // minification used: http://jscompress.com/
   // had to fix ग़ ज़ फ़ ड़ ढ़ after that
 
+  // this function is as of now defunct
+  // for the software is always in "analyze" mode
+  // be changed is not highlighted
+  /*
+  function switchMode()
+  {
+    if (mode == "edit")
+    {
+      mode = "analyze";
+      document.getElementById("chkShowEditables").checked = false;
+    }
+    else
+    {
+      mode = "edit";
+      document.getElementById("chkShowEditables").checked = true;
+    }
+    draw();
+  }
+  */
 
+// this function is as of now defunct
+// as coloring is not being done based on vowels
+/*
+  function vowColor(c)
+  {
+    var color = "";
+    switch(c)
+    {
+      case 1:
+      case 2:
+        color = "grey";
+        break;
+      case 3:
+      case 4:
+        color = "rgb(255,0,0)";
+        break;
+      case 5:
+      case 6:
+        color = "rgb(255,165,0)";
+        break;
+      case 7:
+      case 8: 
+        color = "rgb(0,255,0)";
+        break;
+      case 9:
+      case 10:
+        color = "rgb(102,0,255)";
+        break;
+      default:
+        color = "black";
+    }
+    return "fill: "+color+"; fill-opacity: 0.8;stroke:black;stroke-width: 1";
+  }
+*/
 
+// presumably old conColor
+  /*
+  function conColor(c)
+  {
+    if (c[3] === -10) // do not display space, comma
+      return "display: none";
+
+    var color = "";
+    var strokeOp = "";
+    var strokeW = 0;
+    switch(c[2])
+    {
+      case 0:
+        color = "grey";
+        break;
+      case 1:
+        color = "rgb(255,0,0)";
+        break;
+      case 2:
+        color = "rgb(255,165,0)";
+        break;
+      case 3: 
+        color = "rgb(255,255,0)";
+        break;
+      case 4:
+        color = "rgb(0,255,0)";
+        break;
+      case 5:
+        color = "rgb(0,176,240)";
+        break;
+      case 6:
+        color = "rgb(102,0,255)";
+        break;
+      case 7:
+        color = "rgb(153,51,255)";
+        break;
+      default:
+        color = "black";
+    }
+    if (((c[3]%2 == 0) || ((c[3]>6)&&(c[3]<11))) && (mode == "edit"))
+    {
+      strokeOp = "1.0";
+      strokeW = 2;
+    }
+    else
+    {
+      strokeOp = "0.3";
+      strokeW = 1;
+    }
+    if ((c[3] == -1) && (c[4] == 0))
+    {
+      color = "black";
+      strokeOp = "1";
+      
+    }
+      return "fill: "+color+"; fill-opacity: 0.7;stroke:black; stroke-width: "+strokeW+"; stroke-opacity: "+strokeOp;
+  }
+  */

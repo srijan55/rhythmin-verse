@@ -625,6 +625,7 @@
       color = conColorResult[0];
       fillOp = conColorResult[1];
     }
+    colorBy = 'ghazal';
     if ((colorBy == 'ghazal') && (c.length>6))
     {
       if (c[6] == 'r') // is a radeef char

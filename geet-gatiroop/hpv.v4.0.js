@@ -1,7 +1,22 @@
-﻿  var charW = 24;
-  var charH = 24;
+﻿/* issues with hpv 4
+half letter black square not drawn
+poem text in forefront so clicking box to change box width is tough
+*/
+
+/* primary changes compared to v3
+single color (no different colors as per consonant)
+square or double width rectangle for all vowels
+removed svg border from top, left, right
+decreased 
+1. charW from 24 to 20, 
+2. line spacing from 7 to 5, 
+3. maatraa count position charW/2 after line end instead of charW
+*/
+
+  var charW = 20; // decrease charW to 20 from 24 earlier
+  var charH = 20; // decrease charW to 20 from 24 earlier
   var paddingLeft = 10;
-  var lineSpacing = 7;
+  var lineSpacing = 5;
   var mode = "analyze";
   var showText = true;
   var prevText = "";
@@ -561,7 +576,10 @@
   function conColor(c) {
     var color = "";
     var fillOp = "0.7";
-    switch(c)  // which consonant
+    // set all consonants to a light blue
+    color = "rgb(0,220,255)"; // blue 
+    fillOp = "0.5";
+    /*switch(c)  // which consonant
     { 
       case 0: // vowel
         color = "grey";
@@ -592,7 +610,7 @@
         break;
       default:
         color = "black";
-    }
+    }*/
     return [color,fillOp];
   }
 
@@ -661,7 +679,9 @@
     var x = ((d[5]-d[4])*charW);  // what is x?
     var w = charW*d[4];
     var h = charH;
-    switch(d[3])  // which vowel
+    // set all vowels to a to square or double width rectangle
+    p = "M"+x+",0 L"+x+","+h + " L"+(x+w)+","+h+" L"+(x+w)+",0 z";
+    /*switch(d[3])  // which vowel
     {
       case -1: // unknown
         if (d[4] == 0)
@@ -711,7 +731,7 @@
       default: // unknown
         p = "M"+x+",0 L"+x+","+h + " L"+(x+w)+","+h+" L"+(x+w)+",0 z";
         break;
-    }
+    }*/
     return p;
   }
 
@@ -970,8 +990,8 @@
      chart.select("svg").remove();
      var svg = chart.append("svg")
                   .attr("width", function() {return (fFreeVerse?charW*maxLen+120:charW*maxLen+100);})
-                  .attr("height", ((maxLineLen*(charW+7))+(charW+7))+charW)
-                  .attr("style","border: solid 1px #ddd;");
+                  .attr("height", ((maxLineLen*(charW+lineSpacing))+(charW))+charW)
+                  .attr("style","border-bottom: solid 1px #ddd;");
 
     // create the "g"s (svg groups) for each line
     if (fLineSpacing)
@@ -1057,7 +1077,7 @@
     {
       g.append("svg:text")            // line total maatraa
       .attr("y", charH)
-      .attr("x", function(d) {return charW*maxLen+charW;})
+      .attr("x", function(d) {return charW*maxLen+(charW/2);}) // decreased distance of maatraa count. was charW. is charW/2 now
       //.attr("dominant-baseline", "central")
       .attr("class", "graphText3")
       .text(function(d) { return (d.length > 0) ? d[d.length-1][5] : "";});

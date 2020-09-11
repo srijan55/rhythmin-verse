@@ -2,28 +2,50 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
 	<script type="text/javascript" src="d3.v2.min.js"></script>
-	<script type="text/javascript" src="hpv.v2.1.min.js"></script>
+  <script type="text/javascript" src="hpv.v5.2.min.js"></script>
   <title>Geet Gatiroop</title>
+  <style type="text/css">
+    .poem-box {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 5px;
+    white-space: pre-line;
+    display: inline-block;
+    vertical-align: top;
+    min-width: 300px;
+  }
+  .poem-box[placeholder]:empty:before {
+      content: attr(placeholder);
+      color: #757474f5; 
+  }
+  </style>
 </head>
 <body>
 <!-- software interface -->
 <table style="background-color:white">
 <tr><td valign="top">
 अपनी हिन्दी कविता यहां कापी-पेस्ट करिए<br/>
-<textarea rows="15" cols="45" id="pom" style="font-size: 14px;">
-</textarea>
+<!-- textarea rows="5" cols="45" id="pom" style="font-size: 14px;"></textarea -->
+<div contenteditable="true" placeholder="अपनी कविता यहां डालिए..." id='pom' class="poem-box"></div>
 <br>
-<input type="button" value="Visualize!" onclick="visualize();"></td>
+<input type="button" value="Visualize!" onclick="callVisualize();"></td>
 <td valign="top">
 	<div id="chart" align="center" style="background-color:white;"></div>
   <div style="display:none" id="divControls">
   <!-- <input type="checkbox" id="chkShowEditables" checked="true" onclick="switchMode();" /> Show Editables -->
-  <input type="checkbox" id="chkFreeVerse" onclick="fnFreeVerseSupport();" /> Free Verse<span id="spanFreeVerse" style="display:none"> | Base Count: <input type="number" name="baseCount" id="baseCount" value="1" min="1" size="20" max="100" step="1" onchange="fnBaseCountChange();"></span>
+  <input type="checkbox" id="chkGhazal" onclick="fnGhazal();" /> Ghazal <input type="checkbox" id="chkFreeVerse" onclick="fnFreeVerseSupport();" /> Free Verse<span id="spanFreeVerse" style="display:none"> | Base Count: <input type="number" name="baseCount" id="baseCount" value="1" min="1" size="20" max="100" step="1" onchange="fnBaseCountChange();"></span>
   <br/>
   <input type="checkbox" id="chkShowText" checked="true" onclick="fnShowText();" /> Show Text 
   <input type="checkbox" id="chkLineSpacing" onclick="fnLineSpacing();" /> Remove Line Spacing
   </div>
   </td></tr></table>
   <!-- end software interface -->
+  <script type="text/javascript">
+    function callVisualize()
+    {
+      var poem = document.getElementById("pom").innerText;
+      visualize(poem);
+    }
+  </script>
 </body>
 </html>
